@@ -1,0 +1,34 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #14a44d;
+}
+
+label {
+  color: #14a44d;
+  font-weight: bold;
+}
+
+input {
+  color: #14a44d !important;
+}
+
+input::placeholder {
+  color: #14a44d !important;
+}
+
+.Login,
+.Register,
+.Dashboard {
+  margin-top: 100px !important;
+  margin-bottom: 100px !important;
+}
