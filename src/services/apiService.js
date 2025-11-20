@@ -1,40 +1,43 @@
-// src/services/apiService.js
 import axios from "axios";
 
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
-
 const apiService = axios.create({
-  baseURL: BASE, 
+  const BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 });
 
-// Interceptors left as-is if you want (optional)
+// Interceptor to attach token to headers and handle request errors
 apiService.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
-  (err) => Promise.reject(err)
+  (error) => {
+    console.error("Request error:", error);
+    return Promise.reject(error);
+  }
 );
 
-// FAKE authService for dev — always returns success
+// Add an interceptor for responses
+// apiService.interceptors.response.use(
+//   (response) => response, // Pass through valid responses
+//   (error) => {
+//     console.log("Response Interceptor Triggered:", error.response); // Log error details
+//     if (error.response && error.response.status === 401) {
+//       alert("Session expired. Please log in again.");
+//       sessionStorage.removeItem("token");
+//       window.location.assign("/"); // Redirect to login page
+//     }
+//     return Promise.reject(error); // Forward the error for further handling
+//   }
+// );
+
+// Auth endpoints
 const authService = {
-  register: (data) =>
-    Promise.resolve({
-      data: { message: "Registered (dev)", userDetails: { email: data.email }, token: "dev-token" },
-    }),
-
-  // Bypass network call and resolve immediately
-  login: (data) =>
-    Promise.resolve({
-      data: {
-        message: "Login successful (dev bypass)",
-        token: "dev-token-123",
-        userDetails: { email: data.email || "dev@example.com", name: "Dev User" },
-      },
-    }),
-
-  logout: () => Promise.resolve({ data: { message: "Logged out (dev)" } }),
+  register: (registerData) => apiService.post("/auth/register", registerData),
+  login: (loginData) => apiService.post("/auth/login", loginData),
+  logout: (logoutData) => apiService.post("/auth/logout", logoutData),
 };
 
 export default authService;
