@@ -1,10 +1,12 @@
 import axios from "axios";
 
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+
 const apiService = axios.create({
-  baseURL: "http://localhost:8080/api", // Backend base URL
+  baseURL: BASE, 
 });
 
-// Interceptor to attach token to headers and handle request errors
+// Attach token to all requests
 apiService.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem("token");
@@ -13,31 +15,14 @@ apiService.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    console.error("Request error:", error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
-
-// Add an interceptor for responses
-// apiService.interceptors.response.use(
-//   (response) => response, // Pass through valid responses
-//   (error) => {
-//     console.log("Response Interceptor Triggered:", error.response); // Log error details
-//     if (error.response && error.response.status === 401) {
-//       alert("Session expired. Please log in again.");
-//       sessionStorage.removeItem("token");
-//       window.location.assign("/"); // Redirect to login page
-//     }
-//     return Promise.reject(error); // Forward the error for further handling
-//   }
-// );
 
 // Auth endpoints
 const authService = {
-  register: (registerData) => apiService.post("/auth/register", registerData),
-  login: (loginData) => apiService.post("/auth/login", loginData),
-  logout: (logoutData) => apiService.post("/auth/logout", logoutData),
+  register: (data) => apiService.post("/auth/register", data),
+  login: (data) => apiService.post("/auth/login", data),
+  logout: (data) => apiService.post("/auth/logout", data),
 };
 
 export default authService;
