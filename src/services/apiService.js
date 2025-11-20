@@ -1,3 +1,4 @@
+// src/services/apiService.js
 import axios from "axios";
 
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
@@ -6,23 +7,34 @@ const apiService = axios.create({
   baseURL: BASE, 
 });
 
-// Attach token to all requests
+// Interceptors left as-is if you want (optional)
 apiService.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error)
+  (err) => Promise.reject(err)
 );
 
-// Auth endpoints
+// FAKE authService for dev — always returns success
 const authService = {
-  register: (data) => apiService.post("/auth/register", data),
-  login: (data) => apiService.post("/auth/login", data),
-  logout: (data) => apiService.post("/auth/logout", data),
+  register: (data) =>
+    Promise.resolve({
+      data: { message: "Registered (dev)", userDetails: { email: data.email }, token: "dev-token" },
+    }),
+
+  // Bypass network call and resolve immediately
+  login: (data) =>
+    Promise.resolve({
+      data: {
+        message: "Login successful (dev bypass)",
+        token: "dev-token-123",
+        userDetails: { email: data.email || "dev@example.com", name: "Dev User" },
+      },
+    }),
+
+  logout: () => Promise.resolve({ data: { message: "Logged out (dev)" } }),
 };
 
 export default authService;
