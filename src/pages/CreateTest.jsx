@@ -23,9 +23,9 @@ const CreateTest = () => {
       // try preferred path, fallback to /tests if needed
       let res;
       try {
-        res = await api.post("/tests/create", payload);
+        res = await api.post("tests/create-test", payload);
       } catch (err) {
-        console.warn("/tests/create failed, trying /tests:", err?.response?.data || err.message);
+        console.warn("tests/create-test failed, trying /tests:", err?.response?.data || err.message);
         res = await api.post("/tests", payload);
       }
       console.log("Create test success:", res.data);
