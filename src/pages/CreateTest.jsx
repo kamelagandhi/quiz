@@ -26,7 +26,7 @@ const CreateTest = () => {
         res = await api.post("tests/create-test", payload);
       } catch (err) {
         console.warn("tests/create-test failed, trying /tests:", err?.response?.data || err.message);
-        res = await api.post("/tests", payload);
+        res = await api.post("/tests/create-test", payload);
       }
       console.log("Create test success:", res.data);
       alert("Test created successfully");
