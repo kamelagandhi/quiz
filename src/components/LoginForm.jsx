@@ -13,23 +13,52 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (loginData) => {
-    setIsLoading(true);
-    try {
-      const response = await authService.login(loginData);
-      setToken(response.data.token);
-      setUserDetails(response.data.userDetails);
-      setMessage(response.data.message || "Login successful!");
-      setAlertType("success");
-      navigate("/dashboard");
-    } catch (error) {
-      setMessage(
-        error.response?.data?.message || "An unexpected error occurred"
-      );
+  setIsLoading(true);
+  console.log("handleLogin called with:", loginData);
+
+  try {
+    const response = await authService.login(loginData);
+    console.log("authService.login response:", response);
+
+    const token = response?.data?.token;
+    const userDetails = response?.data?.userDetails;
+    const messageFromServer = response?.data?.message;
+
+    console.log({ token, userDetails, messageFromServer });
+
+    if (!token) {
+      // Helpful message for debugging
+      setMessage("Login failed: no token returned from server.");
       setAlertType("danger");
-    } finally {
-      setIsLoading(false);
+      console.warn("No token in login response:", response);
+      return;
     }
-  };
+
+    // Persist token so interceptors / route guards can read it
+    sessionStorage.setItem("token", token);
+
+    // Update context (if your context persists to storage separately that's fine)
+    setToken(token);
+    setUserDetails(userDetails);
+
+    setMessage(messageFromServer || "Login successful!");
+    setAlertType("success");
+
+    // Small delay to allow state to update (optional)
+    navigate("/dashboard");
+  } catch (error) {
+    console.error("Login error:", error);
+    // show more detailed message if available
+    const serverMessage =
+      error?.response?.data?.message ||
+      error?.message ||
+      "An unexpected error occurred";
+    setMessage(serverMessage);
+    setAlertType("danger");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleSubmit = (e) => {
     e.preventDefault();
