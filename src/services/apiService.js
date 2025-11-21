@@ -1,7 +1,7 @@
 // src/services/apiService.js
 import axios from "axios";
 
-// Use VITE_API_URL in production; fall back to localhost for dev
+// Use VITE_API_URL in production; fallback to localhost in dev
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 const apiService = axios.create({
@@ -9,36 +9,33 @@ const apiService = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Attach token to headers if present
+// Attach token to headers if present in sessionStorage
 apiService.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// (Optional) Response interceptor to handle auth errors globally
+// Optional global response handling
 apiService.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Example: if 401, clear session and redirect to login
+    // if unauthorized, clear token (optional)
     if (error?.response?.status === 401) {
-      // Remove token and optionally redirect
       sessionStorage.removeItem("token");
-      // window.location.assign("/"); // uncomment if you want auto-redirect
+      // don't auto-redirect here — let app handle it
     }
     return Promise.reject(error);
   }
 );
 
-// Auth endpoints (use apiService for all network calls)
+// Auth endpoints
 const authService = {
-  register: (data) => apiService.post("/auth/register", data),
   login: (data) => apiService.post("/auth/login", data),
+  register: (data) => apiService.post("/auth/register", data),
   logout: () => apiService.post("/auth/logout"),
 };
 
