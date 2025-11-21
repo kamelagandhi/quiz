@@ -2,7 +2,6 @@ import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { authService } from "../services/apiService";
 import { useNavigate } from "react-router-dom";
-import api from '../services/api';
 
 const LoginForm = () => {
   const { setToken, setUserDetails } = useContext(AuthContext);
