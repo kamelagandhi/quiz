@@ -14,51 +14,20 @@ const LoginForm = () => {
 
   const handleLogin = async (loginData) => {
   setIsLoading(true);
-  console.log("handleLogin called with:", loginData);
-
-  try {
-    const response = await authService.login(loginData);
-    console.log("authService.login response:", response);
-
-    const token = response?.data?.token;
-    const userDetails = response?.data?.userDetails;
-    const messageFromServer = response?.data?.message;
-
-    console.log({ token, userDetails, messageFromServer });
-
-    if (!token) {
-      // Helpful message for debugging
-      setMessage("Login failed: no token returned from server.");
-      setAlertType("danger");
-      console.warn("No token in login response:", response);
-      return;
-    }
-
-    // Persist token so interceptors / route guards can read it
-    sessionStorage.setItem("token", token);
-
-    // Update context (if your context persists to storage separately that's fine)
-    setToken(token);
-    setUserDetails(userDetails);
-
-    setMessage(messageFromServer || "Login successful!");
-    setAlertType("success");
-
-    // Small delay to allow state to update (optional)
-    navigate("/dashboard");
-  } catch (error) {
-    console.error("Login error:", error);
-    // show more detailed message if available
-    const serverMessage =
-      error?.response?.data?.message ||
-      error?.message ||
-      "An unexpected error occurred";
-    setMessage(serverMessage);
-    setAlertType("danger");
-  } finally {
-    setIsLoading(false);
-  }
+  const fake = {
+    token: "dev-token-123",
+    userDetails: { email: loginData.email || "dev@example.com", name: "Dev User" },
+    message: "Logged in (dev bypass)"
+  };
+  sessionStorage.setItem("token", fake.token);
+  setToken(fake.token);
+  setUserDetails(fake.userDetails);
+  setMessage(fake.message);
+  setAlertType("success");
+  setIsLoading(false);
+  navigate("/dashboard");
 };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
