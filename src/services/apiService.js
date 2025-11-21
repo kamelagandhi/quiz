@@ -1,10 +1,15 @@
+// src/services/apiService.js
 import axios from "axios";
 
+// Use VITE_API_URL in production; fall back to localhost for dev
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
 const apiService = axios.create({
-  const BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+  baseURL: BASE,
+  headers: { "Content-Type": "application/json" },
 });
 
-// Interceptor to attach token to headers and handle request errors
+// Attach token to headers if present
 apiService.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem("token");
@@ -13,31 +18,29 @@ apiService.interceptors.request.use(
     }
     return config;
   },
+  (error) => Promise.reject(error)
+);
+
+// (Optional) Response interceptor to handle auth errors globally
+apiService.interceptors.response.use(
+  (response) => response,
   (error) => {
-    console.error("Request error:", error);
+    // Example: if 401, clear session and redirect to login
+    if (error?.response?.status === 401) {
+      // Remove token and optionally redirect
+      sessionStorage.removeItem("token");
+      // window.location.assign("/"); // uncomment if you want auto-redirect
+    }
     return Promise.reject(error);
   }
 );
 
-// Add an interceptor for responses
-// apiService.interceptors.response.use(
-//   (response) => response, // Pass through valid responses
-//   (error) => {
-//     console.log("Response Interceptor Triggered:", error.response); // Log error details
-//     if (error.response && error.response.status === 401) {
-//       alert("Session expired. Please log in again.");
-//       sessionStorage.removeItem("token");
-//       window.location.assign("/"); // Redirect to login page
-//     }
-//     return Promise.reject(error); // Forward the error for further handling
-//   }
-// );
-
-// Auth endpoints
+// Auth endpoints (use apiService for all network calls)
 const authService = {
-  register: (registerData) => apiService.post("/auth/register", registerData),
-  login: (loginData) => apiService.post("/auth/login", loginData),
-  logout: (logoutData) => apiService.post("/auth/logout", logoutData),
+  register: (data) => apiService.post("/auth/register", data),
+  login: (data) => apiService.post("/auth/login", data),
+  logout: () => apiService.post("/auth/logout"),
 };
 
 export default authService;
+export { apiService };
