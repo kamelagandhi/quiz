@@ -1,121 +1,63 @@
-import React, { useState, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
-import axios from "axios";
+// src/pages/CreateTest.jsx
+import React, { useState } from "react";
+import api from "../services/apiService";
 
 const CreateTest = () => {
-  const { token } = useContext(AuthContext); // Access the authentication token
-  const [formData, setFormData] = useState({
-    subject: "",
-    timePerQuestion: "",
-    markPerQuestion: "",
-    description: "",
-  });
-  const [message, setMessage] = useState("");
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!title.trim()) return alert("Please enter a title");
 
+    const payload = {
+      subject: title,
+      description,
+      markPerQuestion: 1,
+      timePerQuestion: 30,
+    };
+
+    setIsCreating(true);
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/tests/create-test",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Add the token for authentication
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      setMessage(response.data);
-      setFormData({
-        subject: "",
-        timePerQuestion: "",
-        markPerQuestion: "",
-        description: "",
-      });
-    } catch (error) {
-      setMessage(
-        error.response?.data || "An error occurred while creating the test."
-      );
+      // try preferred path, fallback to /tests if needed
+      let res;
+      try {
+        res = await api.post("/tests/create", payload);
+      } catch (err) {
+        console.warn("/tests/create failed, trying /tests:", err?.response?.data || err.message);
+        res = await api.post("/tests", payload);
+      }
+      console.log("Create test success:", res.data);
+      alert("Test created successfully");
+      setTitle("");
+      setDescription("");
+    } catch (err) {
+      console.error("Create test error:", err?.response?.data || err);
+      alert("An error occurred while creating test: " + (err?.response?.data?.message || err?.message || "Check console"));
+    } finally {
+      setIsCreating(false);
     }
   };
 
   return (
-    <div
-      className="container"
-      style={{
-        marginTop: "100px",
-      }}
-    >
-      <h2 className="text-center">Create Test</h2>
-      {message && <div className="alert alert-info">{message}</div>}
-      <form onSubmit={handleSubmit} className="mt-4">
-        <div className="mb-3">
-          <label htmlFor="subject" className="form-label">
-            Subject
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="subject"
-            name="subject"
-            value={formData.subject}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="timePerQuestion" className="form-label">
-            Time Per Question (seconds)
-          </label>
-          <input
-            type="number"
-            className="form-control"
-            id="timePerQuestion"
-            name="timePerQuestion"
-            value={formData.timePerQuestion}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="markPerQuestion" className="form-label">
-            Marks Per Question
-          </label>
-          <input
-            type="number"
-            className="form-control"
-            id="markPerQuestion"
-            name="markPerQuestion"
-            value={formData.markPerQuestion}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="description" className="form-label">
-            Description
-          </label>
-          <textarea
-            className="form-control"
-            id="description"
-            name="description"
-            rows="3"
-            value={formData.description}
-            onChange={handleChange}
-            required
-          ></textarea>
-        </div>
-        <button type="submit" className="btn btn-success w-100">
-          Create Test
-        </button>
-      </form>
+    <div className="container" style={{ marginTop: "120px" }}>
+      <div className="card p-4">
+        <h3>Create Test</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label>Title</label>
+            <input className="form-control" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+          <div className="mb-3">
+            <label>Description</label>
+            <textarea className="form-control" value={description} onChange={(e) => setDescription(e.target.value)} />
+          </div>
+          <button className="btn btn-success" type="submit" disabled={isCreating}>
+            {isCreating ? "Creating..." : "Create Test"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
