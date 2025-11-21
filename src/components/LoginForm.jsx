@@ -1,7 +1,8 @@
+// src/components/LoginForm.jsx
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { authService } from "../services/apiService";
 import { useNavigate } from "react-router-dom";
+import { authService } from "../services/apiService"; // kept for future use
 
 const LoginForm = () => {
   const { setToken, setUserDetails } = useContext(AuthContext);
@@ -12,22 +13,39 @@ const LoginForm = () => {
   const [alertType, setAlertType] = useState("success");
   const [isLoading, setIsLoading] = useState(false);
 
+  // DEV BYPASS: skip actual backend auth and go inside immediately
   const handleLogin = async (loginData) => {
-  setIsLoading(true);
-  const fake = {
-    token: "dev-token-123",
-    userDetails: { email: loginData.email || "dev@example.com", name: "Dev User" },
-    message: "Logged in (dev bypass)"
-  };
-  sessionStorage.setItem("token", fake.token);
-  setToken(fake.token);
-  setUserDetails(fake.userDetails);
-  setMessage(fake.message);
-  setAlertType("success");
-  setIsLoading(false);
-  navigate("/dashboard");
-};
+    setIsLoading(true);
+    try {
+      // fake successful response (admin set true for demo)
+      const fake = {
+        data: {
+          message: "Login successful (dev bypass)",
+          token: "dev-token-123",
+          userDetails: {
+            email: loginData.email || "dev@example.com",
+            fullName: "Dev User",
+            admin: true
+          }
+        }
+      };
 
+      // Persist token (for api interceptors) and set context
+      sessionStorage.setItem("token", fake.data.token);
+      setToken(fake.data.token);
+      setUserDetails(fake.data.userDetails);
+
+      setMessage(fake.data.message);
+      setAlertType("success");
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Dev bypass login error:", err);
+      setMessage("An unexpected error occurred");
+      setAlertType("danger");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
